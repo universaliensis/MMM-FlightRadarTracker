@@ -29,16 +29,16 @@ Module.register('MMM-FlightRadarTracker',{
 		this.getData();
 		setInterval(function () {
 			self.getData();
-		}, self.config.updateInterval * 1000);		
+		}, self.config.updateInterval * 1000);
     },
-	
+
     getStyles: function () {
         return [
             'font-awesome.css',
             'MMM-FlightRadarTracker.css'
         ];
-    },	
-	
+    },
+
 	getData: function() {
         this.sendSocketNotification("MMM-FlightRadarTracker_UPDATE_DATA", this.config);
 	},
@@ -52,9 +52,9 @@ Module.register('MMM-FlightRadarTracker',{
             }
         }
     },
-	
+
 	getDom: function() {
-		
+
 		const wrapper = document.createElement('div');
         wrapper.className = 'flight-tracker';
 
@@ -94,7 +94,7 @@ Module.register('MMM-FlightRadarTracker',{
             aircraftHeading.className = 'aircraft-heading medium';
             aircraftHeading.innerHTML = `<span class="bright">${aircraft.callsign}</span>`;
             if (this.config.showAirline && aircraft.airline) {
-                aircraftHeading.innerHTML += `&nbsp;<span class="small dimmed airline">/${aircraft.airline}</span>`
+                aircraftHeading.innerHTML += `&nbsp;<span class="medium dimmed airline">/${aircraft.airline}</span>`
             }
             row.appendChild(aircraftHeading);
 
@@ -106,23 +106,23 @@ Module.register('MMM-FlightRadarTracker',{
             if (this.config.showType && aircraft.type) {
                 subHeading.push(`<span>${aircraft.type}</span>`);
             }
-            if (this.config.passingByThreshold < 0 || (altitude < this.config.passingByThreshold && aircraft.distance)) {
+            /* if (this.config.passingByThreshold < 0 || (altitude < this.config.passingByThreshold && aircraft.distance)) {
                 const distance = aircraft.distance * (this.config.altitudeUnits === 'metric' ? 1 : 3.28084);
-				if (this.config.altitudeUnits === 'metric' && distance >= 10000) {
-					subHeading.push(`<span><i class="fas fa-location-arrow dimmed"></i>${Math.floor(distance / 1000)}<sup>km</sup></span>`);
-				}
-				else {
-					subHeading.push(`<span><i class="fas fa-location-arrow dimmed"></i>${Math.floor(distance)}<sup>${this.config.altitudeUnits === 'metric' ? 'm' : 'ft'}</sup></span>`);
-				}
-                if (aircraft.bearing) {
-					if (this.config.showDirectionAsArrow) {
-                        subHeading.push(`<i class="fa fa-long-arrow-up" style="transform:rotate(${aircraft.bearing}deg); margin-left: 0.5em;"></i>`);
-					}
-					else {
-						subHeading.push(`<span>${this.cardinalDirection(aircraft.bearing)}</span>`);
-					}
+                if (this.config.altitudeUnits === 'metric' && distance >= 10000) {
+                  subHeading.push(`<span><i class="fas fa-location-arrow dimmed"></i>${Math.floor(distance / 1000)}<sup>km</sup></span>`);
                 }
-            }
+                else {
+                  subHeading.push(`<span><i class="fas fa-location-arrow dimmed"></i>${Math.floor(distance)}<sup>${this.config.altitudeUnits === 'metric' ? 'm' : 'ft'}</sup></span>`);
+                }
+                if (aircraft.bearing) {
+                  if (this.config.showDirectionAsArrow) {
+                    subHeading.push(`<i class="fa fa-long-arrow-up" style="transform:rotate(${aircraft.bearing}deg); margin-left: 0.5em;"></i>`);
+                  }
+                  else {
+                    subHeading.push(`<span>${this.cardinalDirection(aircraft.bearing)}</span>`);
+                  }
+                }
+            } */
             if (subHeading.length > 0) {
                 const aircraftSubHeading = document.createElement('div');
                 aircraftSubHeading.className = 'aircraft-subheading xsmall';
@@ -162,7 +162,8 @@ Module.register('MMM-FlightRadarTracker',{
                         speed = aircraft.speed;
                         speedUnits = this.translate('knots');
                 }
-                metadata.push(`<small><i class="fas fa-wind dimmed"></i>${Math.floor(speed)}<sup>${speedUnits}</sup></small>`);
+                // metadata.push(`<small><i class="fas fa-wind dimmed"></i>${Math.floor(speed)}<sup>${speedUnits}</sup></small>`);
+                metadata.push(`<small><i class="fas tachometer-alt dimmed"></i>${Math.floor(speed)}<sup>${speedUnits}</sup></small>`);
             }
             if (this.config.showAltitude && aircraft.altitude) {
                 let altitudeIconId;
@@ -171,12 +172,31 @@ Module.register('MMM-FlightRadarTracker',{
                 } else if (aircraft.verticalRate > 0) {
                     altitudeIconId = 'fa-angle-double-up';
                 } else {
-                    altitudeIconId = 'fa-arrows-alt-h';
+                    altitudeIconId = 'fa-arrows-alt-v';
                 }
-                metadata.push(`<small><i class="fas ${altitudeIconId} dimmed"></i>${altitude}<sup>${this.config.altitudeUnits === 'metric' ? 'm' : 'ft'}</sup></small>`);
+                metadata.push(`<small><i class="fas ${altitudeIconId} dimmed"></i>${verticalRate}<sup>${this.config.altitudeUnits === 'metric' ? 'm' : 'ft'}</sup></small>`);
             }
+
             if (this.config.showHeading && aircraft.heading) {
                 metadata.push(`<small><i class="far fa-compass dimmed"></i>${Math.floor(aircraft.heading)}<sup>○</sup></small>`);
+            }
+
+            if (this.config.passingByThreshold < 0 || (altitude < this.config.passingByThreshold && aircraft.distance)) {
+                const distance = aircraft.distance * (this.config.altitudeUnits === 'metric' ? 1 : 3.28084);
+                if (this.config.altitudeUnits === 'metric' && distance >= 10000) {
+                  metadata.push(`<small><i class="fas fa-location-arrow dimmed"></i>${Math.floor(distance / 1000)}<sup>km</sup></small>`);
+                }
+                else {
+                  subHeading.push(`<small><i class="fas fa-location-arrow dimmed"></i>${Math.floor(distance)}<sup>${this.config.altitudeUnits === 'metric' ? 'm' : 'ft'}</sup></small>`);
+                }
+                if (aircraft.bearing) {
+                  if (this.config.showDirectionAsArrow) {
+                    subHeading.push(`<i class="fa fa-long-arrow-up" style="transform:rotate(${aircraft.bearing}deg); margin-left: 0.5em;"></i>`);
+                  }
+                  else {
+                    subHeading.push(`<small>${this.cardinalDirection(aircraft.bearing)}</small>`);
+                  }
+                }
             }
             if (metadata.length > 0) {
                 const aircraftMetadata = document.createElement('div');
@@ -225,5 +245,5 @@ Module.register('MMM-FlightRadarTracker',{
         } else {
             return this.translate('N');
         }
-	}		
+	}
 });
